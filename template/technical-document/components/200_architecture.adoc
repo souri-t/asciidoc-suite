@@ -1,0 +1,30 @@
+ifndef::imagesdir[:imagesdir: ../images]
+
+== ハードウェア構成
+本システムにおけるハードウェア構成を説明する。
+
+image::sample_diagram.svg[options=inline,width=70%]
+
+== ソフトウェア構成
+本システムにおけるコンピューター内のソフトウェア構成を説明する。
+
+image::sample_diagram.svg[options=inline,width=70%]
+
+=== 構造
+[plantuml]
+----
+class Animal {
+  run()
+}
+
+class Cat extends Animal {
+}
+----
+=== 構造
+[plantuml]
+----
+@startuml
+:ユーザー: -> (本を借りる)
+:ユーザー: -> (本を返却する)
+@enduml
+----
