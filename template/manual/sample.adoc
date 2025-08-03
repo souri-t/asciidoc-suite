@@ -1,0 +1,126 @@
+= サンプル文書
+:doctype: article
+:lang: ja
+:toc: left
+:toclevels: 3
+:toc-title: 目次
+:sectnums:
+:sectnumlevels: 6
+:sectlinks:
+:sectanchors:
+:source-highlighter: rouge
+:icons: font
+:experimental:
+:stem:
+:imagesdir: images
+:pdf-theme: theme/document-theme.yml
+:pdf-fontsdir: theme/fonts
+:allow-uri-read:
+:title-page:
+:revdate: {docdate}
+:revnumber: 1.0
+:author: システム開発チーム
+:email: team@example.com
+
+== 概要
+
+これはAsciidocとAsciidoctor-PDFのサンプル文書です。日本語フォントの表示とPDF生成をテストするための文書となります。
+
+== はじめに
+
+本文書では、以下の項目について説明します：
+
+* Asciidocの基本的な記法
+* 日本語フォントの表示確認
+* PDF生成の動作確認
+
+== 基本的な記法
+
+=== 段落
+
+これは通常の段落です。日本語の文字が正しく表示されることを確認します。
+改行を含む長い文章でも、適切に折り返されて表示されるはずです。
+
+=== リスト
+
+==== 順序なしリスト
+
+* 項目1
+* 項目2
+** サブ項目2-1
+** サブ項目2-2
+* 項目3
+
+==== 順序ありリスト
+
+1. 最初の項目
+2. 二番目の項目
+3. 三番目の項目
+
+=== テーブル
+
+[cols="1,2,1", options="header"]
+|===
+|項目 |説明 |値
+|名前 |システムの名前 |サンプルシステム
+|バージョン |現在のバージョン |1.0
+|言語 |プログラミング言語 |Java
+|===
+
+=== コードブロック
+
+[source,java]
+----
+public class HelloWorld {
+    public static void main(String[] args) {
+        System.out.println("Hello, World!");
+        System.out.println("こんにちは、世界！");
+    }
+}
+----
+
+=== 注記
+
+[NOTE]
+====
+これは注記ブロックです。重要な情報を強調するために使用します。
+====
+
+[WARNING]
+====
+これは警告ブロックです。注意が必要な事項を記載します。
+====
+
+== まとめ
+
+このサンプル文書により、Asciidocの基本的な機能とPDF生成が正常に動作することを確認できます。
+
+== 付録
+
+=== 用語集
+
+API:: アプリケーション間のインターフェース仕様。
+
+CRUD:: データの基本操作（作成・参照・更新・削除）。
+
+JWT:: 認証トークンの標準形式。
+
+REST:: Web API設計の原則。
+
+=== 参考資料
+
+* https://docs.spring.io/spring-boot/docs/current/reference/html/[Spring Boot公式ドキュメント]
+* https://www.postgresql.org/docs/[PostgreSQL公式ドキュメント]
+* https://developer.mozilla.org/ja/docs/Web[MDN Web Docs（日本語）]
+
+== 改版履歴
+
+[cols="1,2,2,3", options="header"]
+|===
+|版数 |日付 |作成者 |変更内容
+
+|1.0
+|2025-07-31
+|システム開発チーム
+|初版作成
+|===

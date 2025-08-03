@@ -23,9 +23,9 @@ export function activate(context: vscode.ExtensionContext) {
             await projectManager.createNewProject();
         }),
 
-        // HTML ビルド
-        vscode.commands.registerCommand('asciidocSuite.buildHtml', async () => {
-            await buildManager.buildHtml();
+        // PDF ビルド
+        vscode.commands.registerCommand('asciidocSuite.buildPdf', async () => {
+            await buildManager.buildPdf();
         }),
 
         // アーカイブエクスポート

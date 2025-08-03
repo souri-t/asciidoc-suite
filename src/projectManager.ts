@@ -66,9 +66,9 @@ export class ProjectManager {
             
             vscode.window.showInformationMessage(`プロジェクト "${projectName}" が作成されました。`);
             
-            // 作成されたindex.adocを開く
-            const indexPath = path.join(projectPath, 'index.adoc');
-            const doc = await vscode.workspace.openTextDocument(indexPath);
+            // 作成されたsample.adocを開く
+            const samplePath = path.join(projectPath, 'sample.adoc');
+            const doc = await vscode.workspace.openTextDocument(samplePath);
             await vscode.window.showTextDocument(doc);
 
         } catch (error) {

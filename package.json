@@ -31,8 +31,8 @@
         "category": "Asciidoc"
       },
       {
-        "command": "asciidocSuite.buildHtml",
-        "title": "Build HTML",
+        "command": "asciidocSuite.buildPdf",
+        "title": "Build PDF",
         "category": "Asciidoc"
       },
       {
@@ -63,30 +63,17 @@
       "title": "Asciidoc Suite",
       "properties": {
         "asciidocSuite.build.outputFormat": {
-          "type": "array",
-          "default": [
-            "html"
-          ],
+          "type": "string",
+          "default": "pdf",
           "description": "出力形式の設定",
-          "items": {
-            "type": "string",
-            "enum": [
-              "html",
-              "pdf",
-              "epub"
-            ]
-          }
+          "enum": [
+            "pdf"
+          ]
         },
-        "asciidocSuite.build.stylesheet": {
+        "asciidocSuite.build.pdfTheme": {
           "type": "string",
-          "default": "style.css",
-          "description": "使用するスタイルシートファイル（プロジェクトルートからの相対パス）"
-        },
-        "asciidocSuite.build.stylesheetPath": {
-          "type": "string",
-          "default": "auto",
-          "enum": ["auto", "project-root", "same-directory"],
-          "description": "スタイルシートの検索方法: auto(自動検出), project-root(プロジェクトルート), same-directory(入力ファイルと同じディレクトリ)"
+          "default": "./theme/document-theme.yml",
+          "description": "使用するPDFテーマファイル（プロジェクトルートからの相対パス）"
         },
         "asciidocSuite.build.enableDiagrams": {
           "type": "boolean",
@@ -113,14 +100,14 @@
     "menus": {
       "explorer/context": [
         {
-          "command": "asciidocSuite.buildHtml",
+          "command": "asciidocSuite.buildPdf",
           "when": "resourceExtname == .adoc",
           "group": "asciidoc"
         }
       ],
       "commandPalette": [
         {
-          "command": "asciidocSuite.buildHtml",
+          "command": "asciidocSuite.buildPdf",
           "when": "workspaceHasAsciidocFiles"
         }
       ]

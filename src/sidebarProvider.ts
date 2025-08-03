@@ -39,8 +39,8 @@ export class AsciidocSidebarProvider implements vscode.WebviewViewProvider {
                 case 'createProject':
                     await this.projectManager.createNewProject();
                     break;
-                case 'buildHtml':
-                    await this.buildManager.buildHtml();
+                case 'buildPdf':
+                    await this.buildManager.buildPdf();
                     break;
                 case 'exportArchive':
                     await this.buildManager.exportArchive();
@@ -140,10 +140,10 @@ export class AsciidocSidebarProvider implements vscode.WebviewViewProvider {
             <div class="section">
                 <div class="section-title">ビルド</div>
                 <div class="description">
-                    AsciidocファイルをHTMLに変換します。Dockerコンテナを使用して安全にビルドが実行されます。
+                    AsciidocファイルをPDFに変換します。Dockerコンテナを使用して安全にビルドが実行されます。
                 </div>
-                <button class="action-button" onclick="buildHtml()">
-                    <span class="icon">🔨</span>HTMLビルド
+                <button class="action-button" onclick="buildPdf()">
+                    <span class="icon">�</span>PDFビルド
                 </button>
             </div>
             
@@ -170,9 +170,9 @@ export class AsciidocSidebarProvider implements vscode.WebviewViewProvider {
                     });
                 }
                 
-                function buildHtml() {
+                function buildPdf() {
                     vscode.postMessage({
-                        type: 'buildHtml'
+                        type: 'buildPdf'
                     });
                 }
                 

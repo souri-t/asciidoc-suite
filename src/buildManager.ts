@@ -73,10 +73,10 @@ export class BuildManager {
         }
     }
 
-    async buildHtml(): Promise<void> {
+    async buildPdf(): Promise<void> {
         try {
             this.outputChannel.show();
-            this.outputChannel.appendLine('HTML ビルドを開始します...');
+            this.outputChannel.appendLine('PDF ビルドを開始します...');
 
             // Dockerの可用性をチェック
             if (!await this.checkDockerAvailability()) {
@@ -98,18 +98,19 @@ export class BuildManager {
             const config = vscode.workspace.getConfiguration('asciidocSuite');
             
             const outputDir = config.get<string>('build.outputDirectory', './output');
-            const stylesheet = config.get<string>('build.stylesheet', 'style.css');
+            const pdfTheme = config.get<string>('build.pdfTheme', './theme/document-theme.yml');
             const enableDiagrams = config.get<boolean>('build.enableDiagrams', true);
 
             // 出力ディレクトリの準備
             const fullOutputDir = path.resolve(workspaceRoot, outputDir);
             await fs.ensureDir(fullOutputDir);
 
-            // Dockerコンテナを使用してAsciidoctorを実行
-            const outputFile = path.join(fullOutputDir, 'index.html');
+            // Dockerコンテナを使用してAsciidoctor-PDFを実行
+            const fileName = path.basename(filePath, '.adoc');
+            const outputFile = path.join(fullOutputDir, `${fileName}.pdf`);
             const relativeFilePath = path.relative(workspaceRoot, filePath);
             const relativeOutputDir = path.relative(workspaceRoot, fullOutputDir);
-            const relativeOutputFile = path.join(relativeOutputDir, 'index.html');
+            const relativeOutputFile = path.join(relativeOutputDir, `${fileName}.pdf`);
             
             this.outputChannel.appendLine(`ワークスペースルート: ${workspaceRoot}`);
             this.outputChannel.appendLine(`入力ファイル: ${relativeFilePath}`);
@@ -119,67 +120,32 @@ export class BuildManager {
             let command = `docker run --rm `;
             command += `-v "${workspaceRoot}:/workspace" `;
             command += `-w /workspace `;
-            command += `asciidoctor/docker-asciidoctor asciidoctor`;
+            command += `asciidoctor/docker-asciidoctor asciidoctor-pdf`;
             
-            if (stylesheet) {
-                const stylesheetPathMode = config.get<string>('build.stylesheetPath', 'auto');
-                let stylesheetPath;
-                
-                // 入力ファイルのディレクトリ（プロジェクトルート）
-                const inputFileDir = path.dirname(relativeFilePath);
-                
-                // スタイルシートパスの決定ロジック
-                if (stylesheetPathMode === 'same-directory') {
-                    // 入力ファイルと同じディレクトリ
-                    stylesheetPath = path.join(inputFileDir, stylesheet);
-                } else if (stylesheetPathMode === 'project-root') {
-                    // プロジェクトルート直下
-                    stylesheetPath = path.join(inputFileDir, stylesheet);
-                } else {
-                    // auto: 複数の場所を検索
-                    const candidatePaths = [
-                        // 1. 入力ファイルと同じディレクトリ（プロジェクトルート）
-                        path.join(inputFileDir, stylesheet),
-                        // 2. ワークスペースルート直下
-                        stylesheet,
-                        // 3. 相対的な親ディレクトリ
-                        path.join('..', stylesheet)
-                    ];
-                    
-                    stylesheetPath = path.join(inputFileDir, stylesheet); // デフォルト: プロジェクトルート
-                    
-                    this.outputChannel.appendLine(`スタイルシート検索を開始...`);
-                    for (const candidatePath of candidatePaths) {
-                        const fullPath = path.resolve(workspaceRoot, candidatePath);
-                        this.outputChannel.appendLine(`  チェック中: ${candidatePath} -> ${fullPath}`);
-                        if (await fs.pathExists(fullPath)) {
-                            stylesheetPath = candidatePath;
-                            this.outputChannel.appendLine(`  ✓ スタイルシートを発見: ${fullPath}`);
-                            break;
-                        } else {
-                            this.outputChannel.appendLine(`  ✗ 見つかりません`);
-                        }
-                    }
-                }
-                
-                this.outputChannel.appendLine(`最終スタイルシートパス: ${stylesheetPath}`);
-                
-                // スタイルシートファイルの存在確認
-                const fullStylesheetPath = path.resolve(workspaceRoot, stylesheetPath);
-                if (await fs.pathExists(fullStylesheetPath)) {
-                    // Dockerコンテナ内では /workspace プレフィックスが必要
-                    const containerStylesheetPath = `/workspace/${stylesheetPath}`;
-                    command += ` -a stylesheet=${containerStylesheetPath}`;
-                    this.outputChannel.appendLine(`スタイルシートファイルが見つかりました: ${fullStylesheetPath}`);
-                    this.outputChannel.appendLine(`コンテナ内パス: ${containerStylesheetPath}`);
-                } else {
-                    this.outputChannel.appendLine(`警告: スタイルシートファイルが見つかりません: ${fullStylesheetPath}`);
-                    this.outputChannel.appendLine('デフォルトスタイルでビルドを続行します。');
-                }
-            }
+            // CJKスクリプト有効化
+            command += ` -a scripts=cjk`;
             
+            // 図表機能の有効化
             if (enableDiagrams) {
                 command += ` -r asciidoctor-diagram`;
+            }
+            
+            // PDFテーマの指定
+            if (pdfTheme) {
+                const inputFileDir = path.dirname(relativeFilePath);
+                const themePathFromInputDir = path.join(inputFileDir, pdfTheme);
+                
+                this.outputChannel.appendLine(`PDFテーマ検索を開始...`);
+                const fullThemePath = path.resolve(workspaceRoot, themePathFromInputDir);
+                this.outputChannel.appendLine(`  チェック中: ${themePathFromInputDir} -> ${fullThemePath}`);
+                
+                if (await fs.pathExists(fullThemePath)) {
+                    command += ` -a pdf-theme=${themePathFromInputDir}`;
+                    this.outputChannel.appendLine(`  ✓ PDFテーマを発見: ${fullThemePath}`);
+                } else {
+                    this.outputChannel.appendLine(`  ✗ PDFテーマが見つかりません: ${fullThemePath}`);
+                    this.outputChannel.appendLine('デフォルトテーマでビルドを続行します。');
+                }
             }
 
             command += ` -o "${relativeOutputFile}" "${relativeFilePath}"`;
@@ -214,12 +180,12 @@ export class BuildManager {
                 this.outputChannel.appendLine(stderr);
             }
 
-            this.outputChannel.appendLine('HTML ビルドが完了しました。');
-            vscode.window.showInformationMessage(`HTML ビルドが完了しました: ${outputFile}`);
+            this.outputChannel.appendLine('PDF ビルドが完了しました。');
+            vscode.window.showInformationMessage(`PDF ビルドが完了しました: ${outputFile}`);
 
-            // 生成されたHTMLファイルを開くかどうか確認
+            // 生成されたPDFファイルを開くかどうか確認
             const openFile = await vscode.window.showInformationMessage(
-                'ビルドが完了しました。HTMLファイルを開きますか？',
+                'ビルドが完了しました。PDFファイルを開きますか？',
                 '開く',
                 'キャンセル'
             );
@@ -230,7 +196,7 @@ export class BuildManager {
 
         } catch (error) {
             this.outputChannel.appendLine(`エラー: ${error}`);
-            vscode.window.showErrorMessage(`HTML ビルド中にエラーが発生しました: ${error}`);
+            vscode.window.showErrorMessage(`PDF ビルド中にエラーが発生しました: ${error}`);
         }
     }
 
@@ -309,20 +275,20 @@ export class BuildManager {
             return adocFiles[0].fsPath;
         }
 
-        // index.adocを優先的に検索
-        const indexFile = adocFiles.find(file => 
-            path.basename(file.fsPath).toLowerCase() === 'index.adoc'
+        // sample.adocを優先的に検索
+        const sampleFile = adocFiles.find(file => 
+            path.basename(file.fsPath).toLowerCase() === 'sample.adoc'
         );
         
-        if (indexFile) {
-            const useIndex = await vscode.window.showInformationMessage(
-                'index.adocが見つかりました。このファイルをビルドしますか？',
+        if (sampleFile) {
+            const useSample = await vscode.window.showInformationMessage(
+                'sample.adocが見つかりました。このファイルをビルドしますか？',
                 'はい',
                 'ファイルを選択'
             );
             
-            if (useIndex === 'はい') {
-                return indexFile.fsPath;
+            if (useSample === 'はい') {
+                return sampleFile.fsPath;
             }
         }
 
