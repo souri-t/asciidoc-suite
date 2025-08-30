@@ -1,0 +1,650 @@
+= WebAPI仕様書
+:doctype: article
+:lang: ja
+:toc: left
+:toclevels: 4
+:toc-title: 目次
+:sectnums:
+:sectnumlevels: 6
+:sectlinks:
+:sectanchors:
+:source-highlighter: rouge
+:icons: font
+:experimental:
+:stem:
+:imagesdir: images
+:pdf-theme: theme/document-theme.yml
+:pdf-fontsdir: theme/fonts
+:allow-uri-read:
+:title-page:
+:revdate: {docdate}
+:revnumber: 1.0
+:author: システム開発チーム
+:email: team@example.com
+
+== 概要
+
+本文書は、{プロジェクト名}のWebAPI仕様書です。APIの設計方針、エンドポイント一覧、リクエスト・レスポンス仕様について記載しています。
+
+== API設計方針
+
+=== 基本方針
+
+* RESTfulな設計を採用
+* JSON形式でのデータ交換
+* HTTP ステータスコードによる状態表現
+* 統一的なエラーレスポンス形式
+
+=== ベースURL
+
+[source]
+----
+https://api.example.com/v1
+----
+
+=== 認証方式
+
+JWT（JSON Web Token）を使用した認証を採用しています。
+
+[source,http]
+----
+Authorization: Bearer {token}
+----
+
+=== 共通レスポンス形式
+
+==== 成功レスポンス
+
+[source,json]
+----
+{
+  "status": "success",
+  "data": {
+    // レスポンスデータ
+  },
+  "meta": {
+    "timestamp": "2025-08-31T12:00:00Z",
+    "version": "1.0"
+  }
+}
+----
+
+==== エラーレスポンス
+
+[source,json]
+----
+{
+  "status": "error",
+  "error": {
+    "code": "ERROR_CODE",
+    "message": "エラーメッセージ",
+    "details": "詳細なエラー情報"
+  },
+  "meta": {
+    "timestamp": "2025-08-31T12:00:00Z",
+    "version": "1.0"
+  }
+}
+----
+
+<<<
+== エンドポイント一覧
+
+=== ユーザー管理
+
+[cols="1,2,3,2", options="header"]
+|===
+|メソッド |エンドポイント |説明 |認証
+
+|GET
+|/users
+|ユーザー一覧取得
+|必要
+
+|GET
+|/users/{id}
+|ユーザー詳細取得
+|必要
+
+|POST
+|/users
+|ユーザー作成
+|必要
+
+|PUT
+|/users/{id}
+|ユーザー更新
+|必要
+
+|DELETE
+|/users/{id}
+|ユーザー削除
+|必要
+|===
+
+=== 認証
+
+[cols="1,2,3,2", options="header"]
+|===
+|メソッド |エンドポイント |説明 |認証
+
+|POST
+|/auth/login
+|ログイン
+|不要
+
+|POST
+|/auth/logout
+|ログアウト
+|必要
+
+|POST
+|/auth/refresh
+|トークン更新
+|必要
+|===
+
+<<<
+
+== API詳細仕様
+
+=== ユーザー管理API
+
+==== ユーザー一覧取得
+
+* 基本情報
+
+[cols="1,3"]
+|===
+|項目 |値
+
+|エンドポイント
+|GET /users
+
+|認証
+|必要
+
+|説明
+|ユーザーの一覧を取得します
+|===
+
+* リクエストパラメータ
+
+[cols="1,1,1,3", options="header"]
+|===
+|パラメータ名 |型 |必須 |説明
+
+|page
+|integer
+|任意
+|ページ番号（デフォルト: 1）
+
+|limit
+|integer
+|任意
+|1ページあたりの件数（デフォルト: 20, 最大: 100）
+
+|sort
+|string
+|任意
+|ソート順（created_at, updated_at, name）
+
+|order
+|string
+|任意
+|ソート方向（asc, desc）
+|===
+
+* レスポンス例
+
+[source,json]
+----
+{
+  "status": "success",
+  "data": {
+    "users": [
+      {
+        "id": 1,
+        "name": "山田太郎",
+        "email": "yamada@example.com",
+        "role": "admin",
+        "created_at": "2025-08-01T10:00:00Z",
+        "updated_at": "2025-08-01T10:00:00Z"
+      },
+      {
+        "id": 2,
+        "name": "佐藤花子",
+        "email": "sato@example.com",
+        "role": "user",
+        "created_at": "2025-08-02T11:00:00Z",
+        "updated_at": "2025-08-02T11:00:00Z"
+      }
+    ],
+    "pagination": {
+      "current_page": 1,
+      "total_pages": 5,
+      "total_count": 100,
+      "limit": 20
+    }
+  },
+  "meta": {
+    "timestamp": "2025-08-31T12:00:00Z",
+    "version": "1.0"
+  }
+}
+----
+
+<<<
+==== ユーザー詳細取得
+
+* 基本情報
+
+[cols="1,3"]
+|===
+|項目 |値
+
+|エンドポイント
+|GET /users/{id}
+
+|認証
+|必要
+
+|説明
+|指定されたIDのユーザー詳細情報を取得します
+|===
+
+* パスパラメータ
+
+[cols="1,1,1,3", options="header"]
+|===
+|パラメータ名 |型 |必須 |説明
+
+|id
+|integer
+|必須
+|ユーザーID
+|===
+
+* レスポンス例
+
+[source,json]
+----
+{
+  "status": "success",
+  "data": {
+    "user": {
+      "id": 1,
+      "name": "山田太郎",
+      "email": "yamada@example.com",
+      "role": "admin",
+      "profile": {
+        "department": "開発部",
+        "position": "チームリーダー"
+      },
+      "created_at": "2025-08-01T10:00:00Z",
+      "updated_at": "2025-08-01T10:00:00Z"
+    }
+  },
+  "meta": {
+    "timestamp": "2025-08-31T12:00:00Z",
+    "version": "1.0"
+  }
+}
+----
+
+<<<
+==== ユーザー作成
+
+* 基本情報
+
+[cols="1,3"]
+|===
+|項目 |値
+
+|エンドポイント
+|POST /users
+
+|認証
+|必要
+
+|説明
+|新しいユーザーを作成します
+|===
+
+* リクエストボディ
+
+[source,json]
+----
+{
+  "name": "新規ユーザー",
+  "email": "newuser@example.com",
+  "password": "securePassword123",
+  "role": "user",
+  "profile": {
+    "department": "営業部",
+    "position": "営業担当"
+  }
+}
+----
+
+* リクエストパラメータ
+
+[cols="1,1,1,3", options="header"]
+|===
+|パラメータ名 |型 |必須 |説明
+
+|name
+|string
+|必須
+|ユーザー名（1-100文字）
+
+|email
+|string
+|必須
+|メールアドレス（有効な形式）
+
+|password
+|string
+|必須
+|パスワード（8-50文字、英数字記号組み合わせ）
+
+|role
+|string
+|任意
+|ユーザーロール（admin, user）デフォルト: user
+
+|profile.department
+|string
+|任意
+|所属部署
+
+|profile.position
+|string
+|任意
+|役職
+|===
+
+* レスポンス例
+
+[source,json]
+----
+{
+  "status": "success",
+  "data": {
+    "user": {
+      "id": 3,
+      "name": "新規ユーザー",
+      "email": "newuser@example.com",
+      "role": "user",
+      "profile": {
+        "department": "営業部",
+        "position": "営業担当"
+      },
+      "created_at": "2025-08-31T12:00:00Z",
+      "updated_at": "2025-08-31T12:00:00Z"
+    }
+  },
+  "meta": {
+    "timestamp": "2025-08-31T12:00:00Z",
+    "version": "1.0"
+  }
+}
+----
+
+<<<
+=== 認証API
+
+==== ログイン
+
+* 基本情報
+
+[cols="1,3"]
+|===
+|項目 |値
+
+|エンドポイント
+|POST /auth/login
+
+|認証
+|不要
+
+|説明
+|ユーザー認証を行い、アクセストークンを発行します
+|===
+
+* リクエストボディ
+
+[source,json]
+----
+{
+  "email": "yamada@example.com",
+  "password": "userPassword123"
+}
+----
+
+* リクエストパラメータ
+
+[cols="1,1,1,3", options="header"]
+|===
+|パラメータ名 |型 |必須 |説明
+
+|email
+|string
+|必須
+|メールアドレス
+
+|password
+|string
+|必須
+|パスワード
+|===
+
+* レスポンス例
+
+[source,json]
+----
+{
+  "status": "success",
+  "data": {
+    "token": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9...",
+    "refresh_token": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9...",
+    "expires_in": 3600,
+    "user": {
+      "id": 1,
+      "name": "山田太郎",
+      "email": "yamada@example.com",
+      "role": "admin"
+    }
+  },
+  "meta": {
+    "timestamp": "2025-08-31T12:00:00Z",
+    "version": "1.0"
+  }
+}
+----
+
+<<<
+
+== HTTPステータスコード
+
+[cols="1,2,3", options="header"]
+|===
+|ステータスコード |説明 |使用場面
+
+|200
+|OK
+|リクエスト成功
+
+|201
+|Created
+|リソース作成成功
+
+|400
+|Bad Request
+|リクエストパラメータエラー
+
+|401
+|Unauthorized
+|認証エラー
+
+|403
+|Forbidden
+|認可エラー
+
+|404
+|Not Found
+|リソースが見つからない
+
+|409
+|Conflict
+|リソースの競合
+
+|422
+|Unprocessable Entity
+|バリデーションエラー
+
+|500
+|Internal Server Error
+|サーバー内部エラー
+|===
+
+<<<
+
+== エラーコード一覧
+
+[cols="1,2,3", options="header"]
+|===
+|エラーコード |エラー名 |説明
+
+|AUTH_001
+|INVALID_CREDENTIALS
+|認証情報が無効
+
+|AUTH_002
+|TOKEN_EXPIRED
+|トークンの有効期限切れ
+
+|USER_001
+|USER_NOT_FOUND
+|ユーザーが見つからない
+
+|USER_002
+|EMAIL_ALREADY_EXISTS
+|メールアドレスが既に存在
+
+|VALIDATION_001
+|INVALID_PARAMETER
+|パラメータが無効
+
+|VALIDATION_002
+|REQUIRED_PARAMETER_MISSING
+|必須パラメータが不足
+
+|SERVER_001
+|INTERNAL_ERROR
+|サーバー内部エラー
+
+|SERVER_002
+|DATABASE_ERROR
+|データベースエラー
+|===
+
+<<<
+
+== セキュリティ
+
+=== HTTPS通信
+
+全ての通信はHTTPS（TLS 1.2以上）で暗号化されています。
+
+=== レート制限
+
+APIの利用には以下のレート制限が適用されます：
+
+[cols="1,2,3", options="header"]
+|===
+|エンドポイント |制限 |説明
+
+|認証系API
+|10回/分
+|ブルートフォース攻撃対策
+
+|一般API
+|100回/分
+|通常の利用制限
+
+|バッチ処理系API
+|10回/時
+|重い処理の制限
+|===
+
+=== データ保護
+
+* パスワードはbcryptでハッシュ化
+* 個人情報は暗号化して保存
+* ログに機密情報を出力しない
+
+<<<
+
+== テスト方法
+
+=== curl での動作確認例
+
+==== ログイン
+
+[source,bash]
+----
+curl -X POST https://api.example.com/v1/auth/login \
+  -H "Content-Type: application/json" \
+  -d '{
+    "email": "yamada@example.com",
+    "password": "userPassword123"
+  }'
+----
+
+==== ユーザー一覧取得
+
+[source,bash]
+----
+curl -X GET https://api.example.com/v1/users \
+  -H "Authorization: Bearer YOUR_TOKEN_HERE" \
+  -H "Content-Type: application/json"
+----
+
+==== ユーザー作成
+
+[source,bash]
+----
+curl -X POST https://api.example.com/v1/users \
+  -H "Authorization: Bearer YOUR_TOKEN_HERE" \
+  -H "Content-Type: application/json" \
+  -d '{
+    "name": "テストユーザー",
+    "email": "test@example.com",
+    "password": "testPassword123",
+    "role": "user"
+  }'
+----
+
+<<<
+
+== 付録
+
+=== 変更履歴
+
+[cols="1,2,2,3", options="header"]
+|===
+|版数 |日付 |作成者 |変更内容
+
+|1.0
+|2025-08-31
+|システム開発チーム
+|初版作成
+|===
+
+=== 参考資料
+
+* https://tools.ietf.org/html/rfc7519[RFC 7519 - JSON Web Token (JWT)]
+* https://tools.ietf.org/html/rfc6749[RFC 6749 - The OAuth 2.0 Authorization Framework]
+* https://httpstatuses.com/[HTTP Status Codes]
+* https://www.restapitutorial.com/[REST API Tutorial]

@@ -17,6 +17,10 @@ export class ProjectManager {
         'manual': {
             name: '操作マニュアル',
             description: 'ユーザーマニュアルや操作手順書用のテンプレート'
+        },
+        'webapi-document': {
+            name: 'WebAPI仕様書',
+            description: 'WebAPIの仕様書やドキュメント用のテンプレート'
         }
     };
 
