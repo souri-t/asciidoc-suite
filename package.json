@@ -82,8 +82,8 @@
         },
         "asciidocSuite.build.useDocker": {
           "type": "boolean",
-          "default": true,
-          "description": "Dockerコンテナを使用してAsciidoctorを実行する（推奨）"
+          "default": false,
+          "description": "Dockerコンテナを使用してAsciidoctorを実行する（ネイティブインストールが優先されます）"
         },
         "asciidocSuite.build.dockerImage": {
           "type": "string",
@@ -94,6 +94,11 @@
           "type": "string",
           "default": "./output",
           "description": "出力ディレクトリ"
+        },
+        "asciidocSuite.build.nativeAsciidoctorPath": {
+          "type": "string",
+          "default": "asciidoctor-pdf",
+          "description": "ネイティブAsciidoctor PDFコマンドのパス"
         }
       }
     },

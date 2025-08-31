@@ -21,14 +21,20 @@ export class BuildManager {
             return true;
         } catch (error) {
             this.outputChannel.appendLine(`Dockerが見つかりません: ${error}`);
-            vscode.window.showErrorMessage(
-                'Dockerが見つかりません。この拡張機能を使用するにはDockerが必要です。',
-                '詳細情報'
-            ).then(selection => {
-                if (selection === '詳細情報') {
-                    vscode.env.openExternal(vscode.Uri.parse('https://docs.docker.com/get-docker/'));
-                }
-            });
+            return false;
+        }
+    }
+
+    // ネイティブAsciidoctorの可用性をチェック
+    private async checkNativeAsciidoctorAvailability(): Promise<boolean> {
+        try {
+            const config = vscode.workspace.getConfiguration('asciidocSuite');
+            const nativeAsciidoctorPath = config.get<string>('build.nativeAsciidoctorPath', 'asciidoctor-pdf');
+            const { stdout } = await execAsync(`${nativeAsciidoctorPath} --version`);
+            this.outputChannel.appendLine(`ネイティブAsciidoctor PDF検出: ${stdout.trim()}`);
+            return true;
+        } catch (error) {
+            this.outputChannel.appendLine(`ネイティブAsciidoctor PDFが見つかりません: ${error}`);
             return false;
         }
     }
@@ -73,20 +79,93 @@ export class BuildManager {
         }
     }
 
+    // ネイティブAsciidoctor-PDFを使用してビルド
+    private async buildPdfNative(filePath: string, workspaceRoot: string, config: vscode.WorkspaceConfiguration): Promise<void> {
+        const outputDir = config.get<string>('build.outputDirectory', './output');
+        const pdfTheme = config.get<string>('build.pdfTheme', './theme/document-theme.yml');
+        const enableDiagrams = config.get<boolean>('build.enableDiagrams', true);
+        const nativeAsciidoctorPath = config.get<string>('build.nativeAsciidoctorPath', 'asciidoctor-pdf');
+
+        // 出力ディレクトリの準備
+        const fullOutputDir = path.resolve(workspaceRoot, outputDir);
+        await fs.ensureDir(fullOutputDir);
+
+        const fileName = path.basename(filePath, '.adoc');
+        const outputFile = path.join(fullOutputDir, `${fileName}.pdf`);
+        const relativeFilePath = path.relative(workspaceRoot, filePath);
+        const relativeOutputFile = path.relative(workspaceRoot, outputFile);
+        
+        this.outputChannel.appendLine(`ワークスペースルート: ${workspaceRoot}`);
+        this.outputChannel.appendLine(`入力ファイル: ${relativeFilePath}`);
+        this.outputChannel.appendLine(`出力ファイル: ${relativeOutputFile}`);
+        
+        let command = nativeAsciidoctorPath;
+        
+        // CJKスクリプト有効化
+        command += ` -a scripts=cjk`;
+        
+        // 図表機能の有効化
+        if (enableDiagrams) {
+            command += ` -r asciidoctor-diagram`;
+        }
+        
+        // PDFテーマの指定
+        if (pdfTheme) {
+            const inputFileDir = path.dirname(relativeFilePath);
+            const themePathFromInputDir = path.join(inputFileDir, pdfTheme);
+            
+            this.outputChannel.appendLine(`PDFテーマ検索を開始...`);
+            const fullThemePath = path.resolve(workspaceRoot, themePathFromInputDir);
+            this.outputChannel.appendLine(`  チェック中: ${themePathFromInputDir} -> ${fullThemePath}`);
+            
+            if (await fs.pathExists(fullThemePath)) {
+                command += ` -a pdf-theme=${themePathFromInputDir}`;
+                this.outputChannel.appendLine(`  ✓ PDFテーマを発見: ${fullThemePath}`);
+            } else {
+                this.outputChannel.appendLine(`  ✗ PDFテーマが見つかりません: ${fullThemePath}`);
+                this.outputChannel.appendLine('デフォルトテーマでビルドを続行します。');
+            }
+        }
+
+        command += ` -o "${relativeOutputFile}" "${relativeFilePath}"`;
+
+        this.outputChannel.appendLine(`実行コマンド: ${command}`);
+
+        // ビルド実行
+        const { stdout, stderr } = await execAsync(command, { 
+            cwd: workspaceRoot,
+            maxBuffer: 1024 * 1024 * 10 // 10MB
+        });
+
+        if (stdout) {
+            this.outputChannel.appendLine('STDOUT:');
+            this.outputChannel.appendLine(stdout);
+        }
+
+        if (stderr) {
+            this.outputChannel.appendLine('STDERR:');
+            this.outputChannel.appendLine(stderr);
+        }
+
+        this.outputChannel.appendLine('PDF ビルドが完了しました（ネイティブ）。');
+        vscode.window.showInformationMessage(`PDF ビルドが完了しました: ${outputFile}`);
+
+        // 生成されたPDFファイルを開くかどうか確認
+        const openFile = await vscode.window.showInformationMessage(
+            'ビルドが完了しました。PDFファイルを開きますか？',
+            '開く',
+            'キャンセル'
+        );
+
+        if (openFile === '開く') {
+            await vscode.env.openExternal(vscode.Uri.file(outputFile));
+        }
+    }
+
     async buildPdf(): Promise<void> {
         try {
             this.outputChannel.show();
             this.outputChannel.appendLine('PDF ビルドを開始します...');
-
-            // Dockerの可用性をチェック
-            if (!await this.checkDockerAvailability()) {
-                return;
-            }
-
-            // Asciidoctorイメージの確認
-            if (!await this.ensureAsciidoctorImage()) {
-                return;
-            }
 
             // Asciidocファイルの選択
             const filePath = await this.selectAsciidocFile();
@@ -96,7 +175,64 @@ export class BuildManager {
 
             const workspaceRoot = this.getWorkspaceRoot();
             const config = vscode.workspace.getConfiguration('asciidocSuite');
+            const useDocker = config.get<boolean>('build.useDocker', true);
+
+            // ビルド方法の決定
+            let useDockerBuild = false;
+            let useNativeBuild = false;
+
+            if (useDocker) {
+                // Docker優先設定の場合
+                const dockerAvailable = await this.checkDockerAvailability();
+                if (dockerAvailable && await this.ensureAsciidoctorImage()) {
+                    useDockerBuild = true;
+                    this.outputChannel.appendLine('Dockerを使用してビルドします。');
+                } else {
+                    // Dockerが利用できない場合はネイティブにフォールバック
+                    const nativeAvailable = await this.checkNativeAsciidoctorAvailability();
+                    if (nativeAvailable) {
+                        useNativeBuild = true;
+                        this.outputChannel.appendLine('Dockerが利用できないため、ネイティブAsciidoctorを使用します。');
+                    }
+                }
+            } else {
+                // ネイティブ優先設定の場合
+                const nativeAvailable = await this.checkNativeAsciidoctorAvailability();
+                if (nativeAvailable) {
+                    useNativeBuild = true;
+                    this.outputChannel.appendLine('ネイティブAsciidoctorを使用してビルドします。');
+                } else {
+                    // ネイティブが利用できない場合はDockerにフォールバック
+                    const dockerAvailable = await this.checkDockerAvailability();
+                    if (dockerAvailable && await this.ensureAsciidoctorImage()) {
+                        useDockerBuild = true;
+                        this.outputChannel.appendLine('ネイティブAsciidoctorが利用できないため、Dockerを使用します。');
+                    }
+                }
+            }
+
+            if (!useDockerBuild && !useNativeBuild) {
+                vscode.window.showErrorMessage(
+                    'DockerもネイティブAsciidoctorも利用できません。どちらかをインストールしてください。',
+                    'Dockerについて',
+                    'Asciidoctorについて'
+                ).then(selection => {
+                    if (selection === 'Dockerについて') {
+                        vscode.env.openExternal(vscode.Uri.parse('https://docs.docker.com/get-docker/'));
+                    } else if (selection === 'Asciidoctorについて') {
+                        vscode.env.openExternal(vscode.Uri.parse('https://docs.asciidoctor.org/asciidoctor/latest/install/'));
+                    }
+                });
+                return;
+            }
+
+            // 選択されたビルド方法で実行
+            if (useNativeBuild) {
+                await this.buildPdfNative(filePath, workspaceRoot, config);
+                return;
+            }
             
+            // useDockerBuildの場合のみ以下のDockerビルドを実行
             const outputDir = config.get<string>('build.outputDirectory', './output');
             const pdfTheme = config.get<string>('build.pdfTheme', './theme/document-theme.yml');
             const enableDiagrams = config.get<boolean>('build.enableDiagrams', true);
@@ -180,7 +316,7 @@ export class BuildManager {
                 this.outputChannel.appendLine(stderr);
             }
 
-            this.outputChannel.appendLine('PDF ビルドが完了しました。');
+            this.outputChannel.appendLine('PDF ビルドが完了しました（Docker）。');
             vscode.window.showInformationMessage(`PDF ビルドが完了しました: ${outputFile}`);
 
             // 生成されたPDFファイルを開くかどうか確認
