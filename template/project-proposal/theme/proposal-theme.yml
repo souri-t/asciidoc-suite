@@ -1,0 +1,236 @@
+
+extends: default
+page:
+  background-color: ffffff
+  layout: portrait
+  margin: [0.75in, 1in, 0.75in, 1in]
+  size: A4
+base:
+  align: left
+  font-color: 333333
+  font-family: $font-family-sans
+  font-size: 11
+  line-height-length: 16
+  line-height: $base-line-height-length / $base-font-size
+font:
+  catalog:
+    # M+ fonts for better Japanese support
+    M+ 1mn:
+      normal: mplus1mn-regular-subset.ttf
+      bold: mplus1mn-bold-subset.ttf
+      italic: mplus1mn-regular-subset.ttf
+      bold_italic: mplus1mn-bold-subset.ttf
+    M+ 1p Fallback:
+      normal: mplus1p-regular-fallback.ttf
+      bold: mplus1p-bold-fallback.ttf
+      italic: mplus1p-regular-fallback.ttf
+      bold_italic: mplus1p-bold-fallback.ttf
+  fallbacks:
+    - M+ 1p Fallback
+page-break:
+  avoid: true
+title-page:
+  align: center
+  background-color: f8f9fa
+  logo:
+    top: 10%
+  title:
+    top: 45%
+    font-size: 32
+    font-color: 2c3e50
+    line-height: 0.9
+    font-style: bold
+  subtitle:
+    font-size: 20
+    font-style: bold_italic
+    font-color: 34495e
+    line-height: 1
+  authors:
+    margin-top: 60
+    font-size: 16
+    font-color: 7f8c8d
+  revision:
+    margin-top: 20
+    font-size: 14
+    font-color: 95a5a6
+heading:
+  align: left
+  font-color: 2c3e50
+  font-style: bold
+  h1-font-size: 20
+  h2-font-size: 16
+  h3-font-size: 14
+  h4-font-size: 13
+  h5-font-size: 12
+  h6-font-size: 11
+  line-height: 1.3
+  margin-top: 24
+  margin-bottom: 12
+  break-after: avoid
+  h1-background-color: ecf0f1
+  h1-border-color: bdc3c7
+  h1-border-width: 0
+  h1-padding: [8, 12, 8, 12]
+link:
+  font-color: 3498db
+  text-decoration: underline
+list:
+  indent: 20
+  item-spacing: 5
+  marker-font-color: 34495e
+table:
+  background-color: transparent
+  border-color: bdc3c7
+  border-width: 0.75
+  cell-padding: [4, 8, 4, 8]
+  head:
+    background-color: ecf0f1
+    border-bottom-width: 2
+    font-style: bold
+    font-color: 2c3e50
+  body:
+    stripe-background-color: f8f9fa
+  foot:
+    background-color: e8f4fd
+admonition:
+  column-rule-color: bdc3c7
+  column-rule-width: 1
+  padding: [15, 20, 15, 20]
+  border-left-width: 5
+  border-radius: 3
+  label:
+    min-width: 0
+    vertical-align: middle
+    text-transform: uppercase
+    font-style: bold
+    font-size: 0.9em
+  icon:
+    note:
+      name: far-sticky-note
+      stroke-color: 3498db
+      size: 24
+    tip:
+      name: far-lightbulb
+      stroke-color: f39c12
+      size: 24
+    warning:
+      name: fas-exclamation-triangle
+      stroke-color: e67e22
+      size: 24
+    caution:
+      name: fas-exclamation-circle
+      stroke-color: e74c3c
+      size: 24
+    important:
+      name: fas-exclamation
+      stroke-color: e74c3c
+      size: 24
+blockquote:
+  font-color: 7f8c8d
+  font-size: 1.1em
+  border-color: 3498db
+  border-width: 0
+  border-left-width: 4
+  padding: [12, 20, 12, 24]
+  cite:
+    font-size: 0.9em
+    font-color: 95a5a6
+code:
+  font-color: e74c3c
+  background-color: f8f9fa
+  border-color: ecf0f1
+  border-radius: 3
+  border-width: 1
+  padding: [2, 4, 2, 4]
+conum:
+  font-family: M+ 1mn
+  font-color: 7f8c8d
+  font-size: 0.85em
+  line-height: 4 / 3
+example:
+  border-color: bdc3c7
+  border-radius: 6
+  border-width: 1
+  background-color: f8f9fa
+  padding: [24, 20, 24, 20]
+image:
+  align: center
+prose:
+  margin-top: 0
+  margin-bottom: 18
+sidebar:
+  background-color: e8f6f3
+  border-color: 1abc9c
+  border-radius: 6
+  border-width: 1
+  border-left-width: 4
+  padding: [20, 24, 20, 24]
+  title:
+    align: left
+    font-color: 16a085
+    font-family: $heading-font-family
+    font-size: 1.3em
+    font-style: bold
+thematic-break:
+  border-color: bdc3c7
+  border-style: solid
+  border-width: 1
+  margin-top: 20
+  margin-bottom: 20
+description-list:
+  term-font-style: bold
+  term-spacing: 6
+  description-indent: 24
+outline-list:
+  indent: 20
+  item-spacing: 5
+lead:
+  font-size: 1.2em
+  line-height: 1.4
+  font-style: italic
+  font-color: 34495e
+  margin-bottom: 20
+header:
+  font-size: 9
+  font-style: bold
+  font-color: 7f8c8d
+  border-color: ecf0f1
+  border-width: 0.5
+  height: 0.75in
+  line-height: 1
+  padding: [8, 1, 0, 1]
+  vertical-align: top
+  recto:
+    left:
+      content: '{document-title}'
+    right:
+      content: '{page-number} / {page-count}'
+  verso:
+    left:
+      content: '{page-number} / {page-count}'
+    right:
+      content: '{document-title}'
+footer:
+  font-size: 9
+  font-color: 7f8c8d
+  border-color: ecf0f1
+  border-width: 0.5
+  height: 0.75in
+  line-height: 1
+  padding: [0, 1, 8, 1]
+  vertical-align: bottom
+  recto:
+    left:
+      content: '{revdate}'
+    center:
+      content: '企画提案書'
+    right:
+      content: 'Rev. {revnumber}'
+  verso:
+    left:
+      content: 'Rev. {revnumber}'
+    center:
+      content: '企画提案書'
+    right:
+      content: '{revdate}'
+
