@@ -1,0 +1,191 @@
+extends: default
+page:
+  background-color: ffffff
+  layout: portrait
+  margin: [0.75in, 1in, 0.75in, 1in]
+  size: A4
+base:
+  align: left
+  font-color: 333333
+  font-family: $font-family-sans
+  font-size: 10.5
+  line-height-length: 15
+  line-height: $base-line-height-length / $base-font-size
+font:
+  catalog:
+    # M+ fonts for better Japanese support
+    M+ 1mn:
+      normal: mplus1mn-regular-subset.ttf
+      bold: mplus1mn-bold-subset.ttf
+      italic: mplus1mn-regular-subset.ttf
+      bold_italic: mplus1mn-bold-subset.ttf
+    M+ 1p Fallback:
+      normal: mplus1p-regular-fallback.ttf
+      bold: mplus1p-bold-fallback.ttf
+      italic: mplus1p-regular-fallback.ttf
+      bold_italic: mplus1p-bold-fallback.ttf
+  fallbacks:
+    - M+ 1p Fallback
+page-break:
+  avoid: true
+title-page:
+  align: center
+  logo:
+    top: 10%
+  title:
+    top: 55%
+    font-size: 27
+    font-color: 181818
+    line-height: 0.9
+  subtitle:
+    font-size: 18
+    font-style: bold_italic
+    line-height: 1
+  authors:
+    margin-top: 80
+    font-size: 14
+    font-color: 999999
+  revision:
+    margin-top: 20
+heading:
+  align: left
+  font-color: 181818
+  font-style: bold
+  h1-font-size: 18
+  h2-font-size: 15
+  h3-font-size: 13
+  h4-font-size: 12
+  h5-font-size: 11
+  h6-font-size: 10
+  line-height: 1.2
+  margin-top: 20
+  margin-bottom: 10
+  break-after: avoid
+link:
+  font-color: 428bca
+list:
+  indent: 18
+  item-spacing: 4
+  marker-font-color: 404040
+table:
+  background-color: transparent
+  border-color: dddddd
+  border-width: 0.5
+  cell-padding: [3, 5, 3, 5]
+  head:
+    background-color: f5f5f5
+    border-bottom-width: 1.5
+    font-style: bold
+  body:
+    stripe-background-color: fafafa
+  foot:
+    background-color: f0f0f0
+admonition:
+  column-rule-color: dddddd
+  column-rule-width: 1
+  padding: [12, 15, 12, 15]
+  label:
+    min-width: 0
+    vertical-align: middle
+    text-transform: uppercase
+    font-style: bold
+blockquote:
+  font-color: 999999
+  font-size: 1.15em
+  border-color: dddddd
+  border-width: 5
+  border-left-width: 10
+  padding: [8, 15, 8, 19]
+  cite:
+    font-size: 0.9em
+    font-color: 999999
+code:
+  font-color: b12146
+  background-color: f5f5f5
+  border-color: cccccc
+  border-radius: 2
+  border-width: 0.5
+conum:
+  font-family: M+ 1mn
+  font-color: 999999
+  font-size: 0.85em
+  line-height: 4 / 3
+example:
+  border-color: e1e1e1
+  border-radius: 4
+  border-width: 1
+  background-color: ffffff
+  padding: [20, 15, 20, 15]
+image:
+  align: center
+prose:
+  margin-top: 0
+  margin-bottom: 16
+sidebar:
+  background-color: eeeeee
+  border-color: e1e1e1
+  border-radius: 4
+  border-width: 1
+  padding: [20, 15, 20, 15]
+  title:
+    align: center
+    font-color: 333333
+    font-family: $heading-font-family
+    font-size: 1.2em
+    font-style: bold
+thematic-break:
+  border-color: dddddd
+  border-style: solid
+  border-width: 0.5
+  margin-top: 15
+  margin-bottom: 15
+description-list:
+  term-font-style: italic
+  term-spacing: 4
+  description-indent: 18
+outline-list:
+  indent: 18
+  item-spacing: 4
+header:
+  font-size: 9
+  font-style: bold
+  font-color: 999999
+  border-color: dddddd
+  border-width: 0.25
+  height: 0.75in
+  line-height: 1
+  padding: [6, 1, 0, 1]
+  vertical-align: top
+  recto:
+    left:
+      content: '{document-title}'
+    right:
+      content: '{page-number} / {page-count}'
+  verso:
+    left:
+      content: '{page-number} / {page-count}'
+    right:
+      content: '{document-title}'
+footer:
+  font-size: 9
+  font-color: 999999
+  border-color: dddddd
+  border-width: 0.25
+  height: 0.75in
+  line-height: 1
+  padding: [0, 1, 6, 1]
+  vertical-align: bottom
+  recto:
+    left:
+      content: '{revdate}'
+    center:
+      content: '会議議事録'
+    right:
+      content: 'Rev. {revnumber}'
+  verso:
+    left:
+      content: 'Rev. {revnumber}'
+    center:
+      content: '会議議事録'
+    right:
+      content: '{revdate}'

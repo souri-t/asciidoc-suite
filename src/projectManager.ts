@@ -21,6 +21,14 @@ export class ProjectManager {
         'webapi-document': {
             name: 'WebAPI仕様書',
             description: 'WebAPIの仕様書やドキュメント用のテンプレート'
+        },
+        'meeting-minutes': {
+            name: '会議議事録',
+            description: '会議の議事録や打ち合わせ記録用のテンプレート'
+        },
+        'project-proposal': {
+            name: '企画提案書',
+            description: 'プロジェクト提案書やビジネス企画書用のテンプレート'
         }
     };
 
