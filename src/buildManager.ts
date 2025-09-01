@@ -246,16 +246,25 @@ export class BuildManager {
             const outputFile = path.join(fullOutputDir, `${fileName}.pdf`);
             const relativeFilePath = path.relative(workspaceRoot, filePath);
             const relativeOutputDir = path.relative(workspaceRoot, fullOutputDir);
-            const relativeOutputFile = path.join(relativeOutputDir, `${fileName}.pdf`);
+            
+            // 入力ファイルのディレクトリを取得
+            const inputFileDir = path.dirname(filePath);
+            const relativeInputFileDir = path.relative(workspaceRoot, inputFileDir);
+            const inputFileName = path.basename(filePath);
+            
+            // 入力ファイルディレクトリから出力ディレクトリへの相対パス
+            const outputDirFromInputDir = path.relative(inputFileDir, fullOutputDir);
+            const relativeOutputFile = path.join(outputDirFromInputDir, `${fileName}.pdf`);
             
             this.outputChannel.appendLine(`ワークスペースルート: ${workspaceRoot}`);
             this.outputChannel.appendLine(`入力ファイル: ${relativeFilePath}`);
+            this.outputChannel.appendLine(`入力ファイルディレクトリ: ${relativeInputFileDir}`);
             this.outputChannel.appendLine(`出力ディレクトリ: ${relativeOutputDir}`);
-            this.outputChannel.appendLine(`出力ファイル: ${relativeOutputFile}`);
+            this.outputChannel.appendLine(`出力ファイル（入力ディレクトリからの相対パス）: ${relativeOutputFile}`);
             
             let command = `docker run --rm `;
             command += `-v "${workspaceRoot}:/workspace" `;
-            command += `-w /workspace `;
+            command += `-w /workspace/${relativeInputFileDir} `;
             command += `asciidoctor/docker-asciidoctor asciidoctor-pdf`;
             
             // CJKスクリプト有効化
@@ -268,15 +277,12 @@ export class BuildManager {
             
             // PDFテーマの指定
             if (pdfTheme) {
-                const inputFileDir = path.dirname(relativeFilePath);
-                const themePathFromInputDir = path.join(inputFileDir, pdfTheme);
-                
                 this.outputChannel.appendLine(`PDFテーマ検索を開始...`);
-                const fullThemePath = path.resolve(workspaceRoot, themePathFromInputDir);
-                this.outputChannel.appendLine(`  チェック中: ${themePathFromInputDir} -> ${fullThemePath}`);
+                const fullThemePath = path.resolve(inputFileDir, pdfTheme);
+                this.outputChannel.appendLine(`  チェック中: ${pdfTheme} -> ${fullThemePath}`);
                 
                 if (await fs.pathExists(fullThemePath)) {
-                    command += ` -a pdf-theme=${themePathFromInputDir}`;
+                    command += ` -a pdf-theme=${pdfTheme}`;
                     this.outputChannel.appendLine(`  ✓ PDFテーマを発見: ${fullThemePath}`);
                 } else {
                     this.outputChannel.appendLine(`  ✗ PDFテーマが見つかりません: ${fullThemePath}`);
@@ -284,12 +290,12 @@ export class BuildManager {
                 }
             }
 
-            command += ` -o "${relativeOutputFile}" "${relativeFilePath}"`;
+            command += ` -o "${relativeOutputFile}" "${inputFileName}"`;
 
             this.outputChannel.appendLine(`実行コマンド: ${command}`);
 
             // 出力ディレクトリを確実に作成するため、Dockerコンテナ内でもmkdirを実行
-            const mkdirCommand = `docker run --rm -v "${workspaceRoot}:/workspace" -w /workspace asciidoctor/docker-asciidoctor mkdir -p "${relativeOutputDir}"`;
+            const mkdirCommand = `docker run --rm -v "${workspaceRoot}:/workspace" -w /workspace/${relativeInputFileDir} asciidoctor/docker-asciidoctor mkdir -p "${outputDirFromInputDir}"`;
             this.outputChannel.appendLine(`ディレクトリ作成コマンド: ${mkdirCommand}`);
             
             try {
